@@ -5,7 +5,9 @@ import cv2
 import pickle
 import random
 
-DATADIR = "C:/Users/Nico/AppData/Local/Programs/Python/Python37/Scripts/sueprHero"
+
+#this directory is user specific 
+DATADIR = "C:/Users/.../sueprHero"
 categories = ['DC','Marvel']
 
 for cat in categories:
