@@ -1,68 +1,41 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import os
-import cv2
-import pickle
-import random
+import warnings
+warnings.filterwarnings('ignore')
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras import layers
+from PIL import Image
 
 
-#this directory is user specific 
-DATADIR = "C:/Users/.../sueprHero"
-categories = ['DC','Marvel']
+class Data:
+    def normalize_img(self,image, label):
+          """Normalizes images: `uint8` -> `float32`."""
+          return tf.cast(image, tf.float32) / 255., label
 
-for cat in categories:
-    #path for the folder
-    path = os.path.join(DATADIR,cat)
-    for images in os.listdir(path):
-        img_array = cv2.imread(os.path.join(path,images),cv2.IMREAD_GRAYSCALE)
-        IMG_SIZE = 150
-        newImg = cv2.resize(img_array,(IMG_SIZE,IMG_SIZE))
-        plt.imshow(newImg,cmap= "gray")
-        plt.show()
-        break
-    break
+    def __init__(self):
+        data_dir = os.getcwd() +"\\Images"
 
+        self.img_height,self.img_width = 180,180
+        batch_size = 32
+        self.train_ds = tf.keras.preprocessing.image_dataset_from_directory(
+                data_dir,
+                color_mode = "grayscale",
+                validation_split=0.2,
+                subset="training",
+                seed=123,
+                image_size=(self.img_height, self.img_width),
+                batch_size=batch_size)
+        self.class_names = self.train_ds.class_names
+        self.val_ds = tf.keras.preprocessing.image_dataset_from_directory(
+            data_dir,
+            color_mode = "grayscale",
+            validation_split=0.2,
+            subset="validation",
+            seed=123,
+            image_size=(self.img_height, self.img_width),
+            batch_size=batch_size)
+        
+        AUTOTUNE = tf.data.AUTOTUNE
 
-
-training_data  = []
-
-def create_training_data():
-    for cat in categories:
-        # path for the folder
-        path = os.path.join(DATADIR, cat)
-        classNum = categories.index(cat)
-        for images in os.listdir(path):
-            try:
-                img_array = cv2.imread(os.path.join(path, images), cv2.IMREAD_GRAYSCALE)
-                IMG_SIZE = 150
-                newImg = cv2.resize(img_array, (IMG_SIZE, IMG_SIZE))
-                training_data.append([newImg,classNum])
-            except Exception as e:
-                pass
-
-create_training_data()
-
-print(len(training_data))
-
-random.shuffle(training_data)
-
-print(training_data)
-trainX =[]
-testY =[]
-
-for img, label in training_data:
-    trainX.append(img)
-    testY.append(label)
-
-trainX = np.array(trainX).reshape(-1,IMG_SIZE,IMG_SIZE,1)
-
-pickle_out = open("trainX.pickle","wb")
-
-pickle.dump(trainX,pickle_out)
-pickle_out.close()
-
-pickle_outY = open("testY.pickle","wb")
-
-pickle.dump(testY,pickle_outY)
-
-pickle_out.close()
+        self.train_ds = self.train_ds.shuffle(1000).cache().prefetch(buffer_size=AUTOTUNE)
+        self.val_ds = self.val_ds.cache().prefetch(buffer_size=AUTOTUNE)

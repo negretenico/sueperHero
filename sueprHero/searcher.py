@@ -9,7 +9,7 @@ class Search():
         self.headless = False
 
     def do_search(self,keywords : str, limits : int, download : bool):
-        path =         keywords[0:keywords.index(" ")]
+        path =         keywords
 
         image_scrapper = GoogleImageScraper(self.webdriver_path, self.image_path+"\\"+path, keywords, limits, self.headless,
                                             self.min_resolution, self.max_resolution)
